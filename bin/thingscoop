@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+"""
+thingscoop - Command-line utility for searching and filtering videos based on their content
+
+Usage:
+  thingscoop filter <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] [--open]
+  thingscoop search <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
+  thingscoop preview <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>]
+  thingscoop describe <file> [-n <words>] [-m <model>] [--recreate-index] [--gpu-mode] [-c <mc>]
+  thingscoop index <file> [-m <model>] [-c <mc>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
+  thingscoop labels list [-m <model>]
+  thingscoop labels search <regexp> [-m <model>]
+  thingscoop models list
+  thingscoop models info <model>
+  thingscoop models freeze
+  thingscoop models current
+  thingscoop models use <model>
+  thingscoop models download <model>
+  thingscoop models remove <model>
+  thingscoop models clear
+
+Options:
+  --version                       Show version.
+  -h --help                       Show this screen.
+  -o --output <dst>               Output file for supercut
+  -s --sample-rate <sr>           How many frames to classify per second (default = 1)
+  -c --min-confidence <mc>        Minimum prediction confidence required to consider a label (default depends on model)
+  -m --model <model>              Model to use (use 'thingscoop models list' to see all available models)
+  -n --number-of-words <words>    Number of words to describe the video with (default = 5)
+  --gpu-mode                      Enable GPU mode
+  --recreate-index                Recreate object index for file if it already exists
+  --open                          Open filtered video after creating it (OS X only)
+"""
+
+import sys
+import os
+from docopt import docopt
+                
+if __name__ == '__main__':
+    if 'CAFFE_ROOT' not in os.environ:
+        print "You need to set your CAFFE_ROOT environment variable to point to your Caffe directory"
+        sys.exit(1)
+    sys.path.append(os.path.join(os.environ['CAFFE_ROOT'], 'python'))
+    os.environ['GLOG_minloglevel'] = '3'
+    import thingscoop
+    args = docopt(__doc__, version="Thingscoop 0.1")
+    sys.exit(thingscoop.main(args))
+
