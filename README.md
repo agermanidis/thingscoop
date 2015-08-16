@@ -57,7 +57,7 @@ Create a compilation video showing examples for every label recognized in the vi
 
 Example output:
 
-<a href="https://www.youtube.com/watch?v=o0VoyJgPgJE><img width=600 src="resources/clockwork_orange.png"></img></a>
+<a href="https://www.youtube.com/watch?v=o0VoyJgPgJE"><img width=600 src="resources/clockwork_orange.png"></img></a>
 
 #### `thingscoop describe <file>`
 
