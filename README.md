@@ -14,7 +14,7 @@ Thingscoop is based on [Caffe](http://caffe.berkeleyvision.org/), an open-source
 
 ### Installation
 
-1. Install ffmpeg: `brew install ffmpeg` (Mac OS X) or `apt-get install ffmpeg` (Ubuntu).
+1. Install ffmpeg, imagemagick, and ghostscript: `brew install ffmpeg imagemagick ghostscript` (Mac OS X) or `apt-get install ffmpeg imagemagick ghostscript` (Ubuntu).
 1. Follow the installation instructions on the [Caffe Installation page](http://caffe.berkeleyvision.org/installation.html). 
 2. Make sure you build the Python bindings by running `make pycaffe` (on Caffe's directory).
 3. Set the environment variable CAFFE_ROOT to point to Caffe's directory: `export CAFFE_ROOT=[Caffe's directory]`.
@@ -45,19 +45,27 @@ $ thingscoop search violin waking_life.mp4
 
 ####`thingscoop filter <query> <files...>`
 
-Generate a video compilation of the regions in the `<files>` that match `<query>`. Creates an index for `<file>` using the current model if it does not exist.
+Generate a video compilation of the regions in the `<files>` that match `<query>`. Creates index for `<file>` using the current model if it does not exist.
 
 Example output:
 
 <a href="https://www.youtube.com/watch?v=qe9GjrUJipY"><img width=600 src="resources/filter.png"></img></a>
 
-#### `thingscoop preview <file>`
+#### `thingscoop sort <file>`
 
-Create a window that plays the input video `<file>` while also displaying the labels the model recognizes on every frame.
+Create a compilation video showing examples for every label recognized in the video (in alphabetic order). Creates an index for `<file>` using the current model if it does not exist.
+
+Example output:
+
+<a href="https://www.youtube.com/watch?v=o0VoyJgPgJE><img width=600 src="resources/clockwork_orange.png"></img></a>
 
 #### `thingscoop describe <file>`
 
 Print every label that appears in `<file>` along with the number of times it appears. Creates an index for `<file>` using the current model if it does not exist.
+
+#### `thingscoop preview <file>`
+
+Create a window that plays the input video `<file>` while also displaying the labels the model recognizes on every frame.
 
 ```
 $ thingscoop describe koyaanisqatsi.mp4 -m googlenet_places
@@ -211,21 +219,24 @@ wind instrument
 ### Full usage options
 
 ```
+thingscoop - Command-line utility for searching and filtering videos based on their content
+
 Usage:
-  thingscoop search <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
   thingscoop filter <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] [--open]
-  thingscoop preview <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>]
+  thingscoop search <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
   thingscoop describe <file> [-n <words>] [-m <model>] [--recreate-index] [--gpu-mode] [-c <mc>]
-  thingscoop index <file> [-m <model>] [-c <mc>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
+  thingscoop index <files> [-m <model>] [-s <sr>] [-c <mc>] [-r <ocr>] [--recreate-index] [--gpu-mode] 
+  thingscoop sort <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>] [--max-section-length <ms>] [-i <ignore>] [--open]
+  thingscoop preview <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>]
   thingscoop labels list [-m <model>]
   thingscoop labels search <regexp> [-m <model>]
   thingscoop models list
+  thingscoop models info <model>
   thingscoop models freeze
   thingscoop models current
   thingscoop models use <model>
   thingscoop models download <model>
   thingscoop models remove <model>
-  thingscoop models info <model>
   thingscoop models clear
 
 Options:
@@ -234,13 +245,27 @@ Options:
   -o --output <dst>               Output file for supercut
   -s --sample-rate <sr>           How many frames to classify per second (default = 1)
   -c --min-confidence <mc>        Minimum prediction confidence required to consider a label (default depends on model)
-  -m --model <model>              Model to use (use 'thingscoop models list' to see all models available)
+  -m --model <model>              Model to use (use 'thingscoop models list' to see all available models)
   -n --number-of-words <words>    Number of words to describe the video with (default = 5)
+  -t --max-section-length <ms>    Max number of seconds to show examples of a label in the sorted video (default = 5)
+  -r --min-occurrences <ocr>      Minimum number of occurrences of a label in video required for it to be shown in the sorted video (default = 2)
+  -i --ignore-labels <labels>     Labels to ignore when creating the sorted video video
+  --title <title>                 Title to show at the beginning of the video (sort mode only)
   --gpu-mode                      Enable GPU mode
   --recreate-index                Recreate object index for file if it already exists
   --open                          Open filtered video after creating it (OS X only)
-
 ```
+
+### CHANGELOG
+
+#### 0.2 (8/16/2015)
+
+* Added `sort` option for creating a video compilation of all labels appearing in a video
+* Now using JSON for the index files
+
+#### 0.1 (8/5/2015)
+
+* Conception
 
 ### License
 

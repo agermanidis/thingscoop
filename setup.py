@@ -7,7 +7,7 @@ except ImportError:
 
 setup(
     name='thingscoop',
-    version='0.1',
+    version='0.2',
     description='Command-line utility for searching and filtering videos based on objects that appear in them using convolutional neural networks',
     author='Anastasis Germanidis',
     author_email='agermanidis@gmail.com',

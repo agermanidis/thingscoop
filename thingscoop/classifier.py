@@ -7,7 +7,7 @@ import numpy
 import os
 
 class ImageClassifier(object):
-    def __init__(self, model, gpu_mode=False, confidence_threshold=0.25):
+    def __init__(self, model, gpu_mode=False):
         self.model = model
         
         kwargs = {}
@@ -30,7 +30,7 @@ class ImageClassifier(object):
             **kwargs
         )
         
-        self.confidence_threshold = self.model.get("default_threshold") or confidence_threshold
+        self.confidence_threshold = 0.1
         
         if gpu_mode:
             caffe.set_mode_gpu()
@@ -56,7 +56,7 @@ class ImageClassifier(object):
             expected_infogain *= self.bet['infogain']
             infogain_sort = expected_infogain.argsort()[::-1]
             results = [
-                (self.bet['words'][v], expected_infogain[v])
+                (self.bet['words'][v], float(expected_infogain[v]))
                 for v in infogain_sort
                 if expected_infogain[v] > self.confidence_threshold
             ]
@@ -65,7 +65,7 @@ class ImageClassifier(object):
             indices = (-scores).argsort()
             predictions = self.labels[indices]
             results = [
-                (p, scores[i])
+                (p, float(scores[i]))
                 for i, p in zip(indices, predictions)
                 if scores[i] > self.confidence_threshold
             ]

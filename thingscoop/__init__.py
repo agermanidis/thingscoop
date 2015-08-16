@@ -5,8 +5,9 @@ import os
 import pydoc
 import subprocess
 import tempfile
-
 from collections import defaultdict
+from operator import itemgetter
+
 from progressbar import ProgressBar, Percentage, Bar, ETA
 
 from .classifier import ImageClassifier
@@ -22,9 +23,14 @@ from .models import use_model
 from .preview import preview
 from .query import filename_for_query
 from .query import validate_query
-from .search import label_video
+from .search import label_videos
+from .search import filter_out_labels
+from .search import reverse_index
 from .search import search_videos
+from .search import threshold_labels
+from .utils import create_compilation
 from .utils import create_supercut
+from .utils import merge_values
 from .utils import search_labels
 
 def main(args):
@@ -71,46 +77,57 @@ def main(args):
     sample_rate = float(args['--sample-rate'] or 1)
     min_confidence = float(args['--min-confidence'] or 0.25)
     number_of_words = int(args['--number-of-words'] or 5)
+    max_section_length = float(args['--max-section-length'] or 5)
+    min_occurrences = int(args['--min-occurrences'] or 2)
+    ignore_labels = args['--ignore-labels']
     recreate_index = args['--recreate-index'] or False
     gpu_mode = args['--gpu-mode'] or False
+    if ignore_labels:
+        ignore_list = ignore_labels.split(',')
+    else:
+        ignore_list = []
 
     download_model(model_name)
     model = read_model(model_name)
-    classifier = ImageClassifier(model, gpu_mode=gpu_mode, confidence_threshold=min_confidence)
+    classifier = ImageClassifier(model, gpu_mode=gpu_mode)
                                  
     if args['preview']:
         preview(args['<file>'], classifier)
         return 0
 
-    if args['index'] or args['describe']:
-        timed_labels = label_video(
-            args['<file>'],
-            classifier,
-            sample_rate=sample_rate,
-            recreate_index=recreate_index
-        )
-        if args['describe']:
-            freq_dist = defaultdict(lambda: 0)
-            for (t, labels) in timed_labels:
-                for label in labels:
-                    freq_dist[label] += 1
-            sorted_labels = sorted(freq_dist.iteritems(), key=lambda (k, v): v, reverse=True)
-            print '\n'.join(map(lambda (k, v): "{0} {1}".format(k, v), sorted_labels))
-        return 0
+    filenames = args['<files>'] or [args['<file>']]
 
-    query = args['<query>']
-    validate_query(query, model.labels(with_hypernyms=True))
- 
-    matching_time_regions = search_videos(
-        args['<files>'],
-        args['<query>'],
+    labels_by_filename = label_videos(
+        filenames,
         classifier,
         sample_rate=sample_rate,
         recreate_index=recreate_index
     )
 
-    if not matching_time_regions:
+    if args['describe']:
+        freq_dist = defaultdict(lambda: 0)
+        for (t, labels) in threshold_labels(merge_values(labels_by_filename), min_confidence):
+            for label in map(itemgetter(0), labels):
+                freq_dist[label] += 1
+        sorted_labels = sorted(freq_dist.iteritems(), key=itemgetter(1), reverse=True)
+        print '\n'.join(map(lambda (k, v): "{0} {1}".format(k, v), sorted_labels))
         return 0
+
+    if args['search'] or args['filter']:
+        query = args['<query>']
+        validate_query(query, model.labels(with_hypernyms=True))
+    
+        matching_time_regions = search_videos(
+            labels_by_filename,
+            args['<query>'],
+            classifier,
+            sample_rate=sample_rate,
+            recreate_index=recreate_index,
+            min_confidence=min_confidence
+        )
+
+        if not matching_time_regions:
+            return 0
 
     if args['search']:
         for filename, region in matching_time_regions:
@@ -137,3 +154,31 @@ def main(args):
         if args['--open']:
             subprocess.check_output(['open', dst])
 
+    if args['sort']:
+        timed_labels = labels_by_filename[args['<file>']]
+        timed_labels = threshold_labels(timed_labels, min_confidence)
+        timed_labels = filter_out_labels(timed_labels, ignore_list)
+        
+        idx = reverse_index(
+            timed_labels,
+            min_occurrences=min_occurrences,
+            max_length_per_label=max_section_length
+        )
+        compilation = create_compilation(args['<file>'], idx)
+
+        dst = args.get('<dst>')
+        if not dst:
+            base, ext = os.path.splitext(args['<file>'])
+            dst = "{0}_sorted.mp4".format(base)
+ 
+        compilation.to_videofile(
+            dst,
+            codec="libx264", 
+            temp_audiofile="temp.m4a",
+            remove_temp=True,
+            audio_codec="aac",
+        )
+
+        if args['--open']:
+            subprocess.check_output(['open', dst])       
+        

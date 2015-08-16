@@ -5,9 +5,10 @@ thingscoop - Command-line utility for searching and filtering videos based on th
 Usage:
   thingscoop filter <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] [--open]
   thingscoop search <query> <files>... [-o <output_path>] [-m <model>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
-  thingscoop preview <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>]
   thingscoop describe <file> [-n <words>] [-m <model>] [--recreate-index] [--gpu-mode] [-c <mc>]
-  thingscoop index <file> [-m <model>] [-c <mc>] [-s <sr>] [-c <mc>] [--recreate-index] [--gpu-mode] 
+  thingscoop index <files> [-m <model>] [-s <sr>] [-c <mc>] [-r <ocr>] [--recreate-index] [--gpu-mode] 
+  thingscoop sort <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>] [--max-section-length <ms>] [-i <ignore>] [--open]
+  thingscoop preview <file> [-m <model>] [--gpu-mode] [--min-confidence <ct>]
   thingscoop labels list [-m <model>]
   thingscoop labels search <regexp> [-m <model>]
   thingscoop models list
@@ -27,6 +28,10 @@ Options:
   -c --min-confidence <mc>        Minimum prediction confidence required to consider a label (default depends on model)
   -m --model <model>              Model to use (use 'thingscoop models list' to see all available models)
   -n --number-of-words <words>    Number of words to describe the video with (default = 5)
+  -t --max-section-length <ms>    Max number of seconds to show examples of a label in the sorted video (default = 5)
+  -r --min-occurrences <ocr>      Minimum number of occurrences of a label in video required for it to be shown in the sorted video (default = 2)
+  -i --ignore-labels <labels>     Labels to ignore when creating the sorted video video
+  --title <title>                 Title to show at the beginning of the video (sort mode only)
   --gpu-mode                      Enable GPU mode
   --recreate-index                Recreate object index for file if it already exists
   --open                          Open filtered video after creating it (OS X only)
