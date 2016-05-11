@@ -1,4 +1,4 @@
-<img width=800 src="resources/preview.jpg"></img>
+<img width=800 src="http://i.imgur.com/gyVNlgX.jpg"></img>
 
 ## Thingscoop: Utility for searching and filtering videos based on their content
 
